@@ -17,75 +17,84 @@
  
 //Create software serial object to communicate with SIM800
 SoftwareSerial serialSIM800(SIM800_TX_PIN,SIM800_RX_PIN);
-
-int led = 5;                // the pin that the LED is atteched to
-int sensor = 4;              // the pin that the sensor is atteched to
-int state = LOW;             // by default, no motion detected
-int val = 0;                // variable to store the sensor status (value)
-int nmex = 0;
-
-void setup() {
-  //Begin serial comunication with Arduino and Arduino IDE (Serial Monitor)
-  pinMode(led, OUTPUT);      // initalize LED as an output
-  pinMode(sensor, INPUT);    // initialize sensor as an input
-  
+unsigned long time;
+unsigned long time2;
+unsigned long time3;
+unsigned long time4;
+const long interval = 15000; //15 sec
+int sensor = 10;             
+int val = LOW;  
+int contatore= 0;
+void setup()
+{
   Serial.begin(9600);
- 
-   
-  //Being serial communication witj Arduino and SIM800
- 
   Serial.println("Alarm system ON....");
   Serial.println("Setup Complete!");
   Serial.println("Ready to sending SMS...");
-   
- 
+  delay(60000);
 }
  
-void loop() {
-  
-  val = digitalRead(sensor);   // read sensor value
-  if (val == HIGH) {           // check if the sensor is HIGH
-    digitalWrite(led, HIGH);
-    delay(4000);// turn LED ON
-           
-    
-    if (state == LOW && nmex < 3 ) {
-      
-      Serial.println("Motion detected!");
-      nmex++; 
+void loop()
+{
+   val = digitalRead(sensor);   // read sensor value
+  time = millis();
+  //prints time since program started
+  if(val== HIGH && contatore==0){
+    time2=time;
+    Serial.println("Time2 e: ");
+    Serial.println(time2);
+    contatore++;
+    Serial.println(contatore);
+    delay(1000);
+  }
+  if(val==HIGH){
+    contatore++;
+    Serial.println("contatore ");
+    Serial.println( contatore);
+    delay(3000);
+  }
+  if(contatore==4){
+    time3=time;
+    time4=time3-time2;
+     Serial.println("Time3 e: ");
+    Serial.println(time3);
+    Serial.println("Time4 e: ");
+    Serial.println(time4);
+     Serial.println("interval e: ");
+    Serial.println(interval);
+    if(time4 <= interval){
        while(!Serial);
         serialSIM800.begin(9600);
-      delay(1000);
+      delay(2000);
        //Set SMS format to ASCII
       serialSIM800.write("AT+CMGF=1\r\n");
-      delay(1000);
+      delay(2000);
  
   //Send new SMS command and message number
-      serialSIM800.write("AT+CMGS=\"3330000000\"\r\n");
-      delay(1000);
+      serialSIM800.write("AT+CMGS=\"3348276612\"\r\n");
+      delay(2000);
    
   //Send SMS content
       serialSIM800.write("Allarme Scattato rilevata intrusione , F.R.I.D.A.Y ");
-      delay(1000);
+      delay(2000);
    
   //Send Ctrl+Z / ESC to denote SMS message is complete
       serialSIM800.write((char)26);
-      delay(1000);
+      delay(2000);
      
       Serial.println("SMS Sent!");
-      state = HIGH;       // update variable state to HIGH
-      delay(8000);
+      delay(10000);
+      time2=0;
+      time3=0;
+      contatore=0;
+    }else{
+      time2=0;
+      time3=0;
+      contatore=0;
+       Serial.println("scatti al di sopra dei 10 secondi");
+       delay(10000);
     }
-  } 
-  else {
-      digitalWrite(led, LOW); // turn LED OFF
-      delay(6000);             // delay 200 milliseconds 
-      
-      if (state == HIGH){
-        Serial.println("Motion stopped!");
-        state = LOW;       // update variable state to LOW
-    }
+    
   }
+ 
 }
-
-
